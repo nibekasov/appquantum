@@ -1,0 +1,23 @@
+version: '3.9'
+services:
+  clickhouse:
+    image: clickhouse/clickhouse-server:24.9
+    ports:
+      - '8123:8123'
+      - '9000:9000'
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    environment:
+      CLICKHOUSE_HOST: clickhouse
+      CLICKHOUSE_PORT: '8123'
+      CLICKHOUSE_DB: roas
+    depends_on:
+      - clickhouse
+    ports:
+      - '8000:8000'
