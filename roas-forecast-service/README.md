@@ -16,23 +16,22 @@ Designed for **UA optimization workflows** and **multi-level aggregation** (micr
 ---
 
 ## Repository Structure
-yaml
-'''
+
 roas-forecast-service/
-├── docker-compose.yml
-├── requirements.txt
-├── sql/
-│ └── schema.sql
-├── src/
-│ ├── api/
-│ │ └── app.py
-│ ├── core/
-│ └── training/
-│ └── train.py
-├── scripts/
-│ └── load_csv_to_clickhouse.py
-└── README.md
-'''
+  ├── docker-compose.yml
+  ├── requirements.txt
+  ├── sql/
+  │ └── schema.sql
+  ├── src/
+  │ ├── api/
+  │ │ └── app.py
+  │ ├── core/
+  │ └── training/
+  │ └── train.py
+  ├── scripts/
+  │ └── load_csv_to_clickhouse.py
+  └── README.md
+
 
 
 
