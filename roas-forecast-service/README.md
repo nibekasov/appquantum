@@ -16,7 +16,7 @@ Designed for **UA optimization workflows** and **multi-level aggregation** (micr
 ---
 
 ## Repository Structure
-
+```text
 roas-forecast-service/
   ├── docker-compose.yml
   ├── requirements.txt
