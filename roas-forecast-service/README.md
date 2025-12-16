@@ -53,7 +53,7 @@ docker compose run --rm migrate
 Verify:
 ```powershell
 docker compose exec api sh -lc "python scripts/load_csv_to_clickhouse.py --csv /app/test_task_cl.csv --table cohort_metrics_raw"
-```
+
 
 ### Step 2. Load CSV data (HTTP insert — recommended on Windows)
 Option A. Load via Python loader (recommended)
