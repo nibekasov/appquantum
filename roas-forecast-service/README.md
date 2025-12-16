@@ -85,7 +85,7 @@ docker compose exec clickhouse clickhouse-client --query "SELECT min(cost), max(
 
 ### Step 3. Train models (inside API container)
 ```powershell
-docker compose run --rm train
+docker compose exec api sh -lc "PYTHONPATH=/app python -m src.training.train"
 
 ```
 Artifacts schoudl be like thist 
