@@ -20,10 +20,26 @@ def main() -> None:
 
     df = pd.read_csv(args.csv)
 
-    client = clickhouse_connect.get_client(host=args.host, port=args.port, database=args.db)
+    # 1. Подключаемся БЕЗ указания базы
+    client = clickhouse_connect.get_client(
+        host=args.host,
+        port=args.port,
+    )
+
+    # 2. Создаём БД
+    client.command(f"CREATE DATABASE IF NOT EXISTS {args.db}")
+
+    # 3. Переподключаемся уже к нужной БД
+    client = clickhouse_connect.get_client(
+        host=args.host,
+        port=args.port,
+        database=args.db,
+    )
+
 
     # Create schema if needed
     schema_path = os.path.join(os.path.dirname(__file__), "..", "sql", "schema.sql")
+    schema_path = os.path.abspath(schema_path)
     with open(schema_path, "r", encoding="utf-8") as f:
         for stmt in f.read().split(";"):
             stmt = stmt.strip()
