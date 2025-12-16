@@ -90,9 +90,10 @@ def aggregate_to_level(df: pd.DataFrame, level: str) -> pd.DataFrame:
     out = d.groupby(keys, dropna=False).agg(agg).reset_index()
 
     for c in roas_cols:
-        out[c] = out[c + "_rev"] / out["cost"].replace(0, np.nan)
+        out[c] = (out[c + "_rev"] / out["cost"].replace(0, np.nan)).fillna(0.0)
     for c in rv_cols:
-        out[c] = out[c + "_views"] / out["installs"].replace(0, np.nan)
+        out[c] = (out[c + "_views"] / out["installs"].replace(0, np.nan)).fillna(0.0)
+
 
     drop_cols = [c for c in out.columns if c.endswith("_rev") or c.endswith("_views")]
     out = out.drop(columns=drop_cols)

@@ -12,7 +12,7 @@ DEFAULT_DB = os.getenv("CLICKHOUSE_DB", "roas")
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--csv", required=True, help="Path to cohort CSV (test_task_cl.csv)")
-    ap.add_argument("--table", default="cohort_metrics", help="Target table name")
+    ap.add_argument("--table", default="cohort_metrics_raw", help="Target table name")
     ap.add_argument("--host", default=DEFAULT_HOST)
     ap.add_argument("--port", type=int, default=DEFAULT_PORT)
     ap.add_argument("--db", default=DEFAULT_DB)
@@ -40,15 +40,25 @@ def main() -> None:
     # Create schema if needed
     schema_path = os.path.join(os.path.dirname(__file__), "..", "sql", "schema.sql")
     schema_path = os.path.abspath(schema_path)
+
     with open(schema_path, "r", encoding="utf-8") as f:
         for stmt in f.read().split(";"):
             stmt = stmt.strip()
             if stmt:
                 client.command(stmt)
 
-    # Insert into roas.cohort_metrics
+    client.command(f"TRUNCATE TABLE {args.db}.{args.table}")
+
     full_table = f"{args.db}.{args.table}"
+
+    # Получаем колонки таблицы
+    cols = client.query_df(f"DESCRIBE TABLE {full_table}")["name"].tolist()
+
+    # Оставляем только те колонки, которые есть в CH
+    df = df[[c for c in cols if c in df.columns]].copy()
+
     client.insert_df(full_table, df)
+
     print(f"Inserted {len(df)} rows into {full_table}")
 
 
