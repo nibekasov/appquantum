@@ -48,73 +48,89 @@ docker compose ps
 ```
 ### Step 1. Apply database schema
 ```powershell
-docker cp .\\sql\\schema.sql roas-forecast-service-clickhouse-1:/tmp/schema.sql
-docker exec -it roas-forecast-service-clickhouse-1 bash -lc "clickhouse-client --multiquery < /tmp/schema.sql"
-Verify:
+docker compose run --rm migrate
 ```
-
+Verify:
 ```powershell
-docker exec -it roas-forecast-service-clickhouse-1 clickhouse-client --query "SHOW DATABASES"
-docker exec -it roas-forecast-service-clickhouse-1 clickhouse-client --query "SHOW TABLES FROM roas"
+docker compose exec clickhouse clickhouse-client --query "SHOW TABLES FROM roas"
 ```
 
 ### Step 2. Load CSV data (HTTP insert — recommended on Windows)
+Option A. Load via Python loader (recommended)
+
+Mount the directory with CSV file into the api container
+(for example, via docker-compose.yml → api.volumes):
+
+volumes:
+  - "C:/Users/{root}:/data"
+
+
 ```powershell
-Copy code
-curl.exe -sS `
-  -H "Content-Type: text/plain" `
-  --data-binary "@C:\\Users\\nibek\\Downloads\\Telegram Desktop\\test_task_cl.csv" `
-  "http://localhost:8123/?query=INSERT%20INTO%20roas.cohort_metrics%20FORMAT%20CSVWithNames"
+docker compose exec api sh -lc "python scripts/load_csv_to_clickhouse.py --csv /data/test_task_cl.csv --table cohort_metrics_raw"
 ```
 Verify:
 
 ```powershell
+docker compose exec clickhouse clickhouse-client --query "SELECT count() FROM roas.cohort_metrics_raw"
+docker compose exec clickhouse clickhouse-client --query "SELECT min(cost), max(cost), countIf(cost > 0) FROM roas.cohort_metrics"
+'''
 
-curl.exe -sS "http://localhost:8123/?query=SELECT%20count()%20FROM%20roas.cohort_metrics"
 ### Step 3. Train models (inside API container)
 ```powershell
-docker exec -it roas-forecast-service-api-1 python -m src.training.train
+docker compose run --rm train
+
 ```
-Verify artifacts:
+Artifacts schoudl be like thist 
 
 ```powershell
-docker exec -it roas-forecast-service-api-1 ls -lah /app/models
+models/
+  ├── micro_iap_latest.cbm
+  ├── micro_iaa_latest.cbm
+  ├── mid_iap_latest.cbm
+  ├── mid_iaa_latest.cbm
+  ├── macro_iap_latest.cbm
+  └── macro_iaa_latest.cbm
 ```
-Expected:
 
-python-repl
-micro_iap_latest.cbm
-micro_iaa_latest.cbm
-mid_iap_latest.cbm
-macro_iap_latest.cbm
-...
 ### Step 4. Smoke test API
 Health check
 
 ```powershell
-curl.exe http://localhost:8000/health
+Invoke-RestMethod -Uri "http://localhost:8000/health"
 ```
-Prediction (macro level)
+Prediction example (micro level):
 
 ```powershell
-curl.exe -X POST "http://localhost:8000/predict" `
-  -H "Content-Type: application/json" `
-  -d "{ `\"level`\": `\"macro`\", `\"target`\": `\"iap`\", `\"date_from`\": 251, `\"date_to`\": 257 }"
+Invoke-RestMethod -Method Post `
+  -Uri "http://localhost:8000/predict" `
+  -ContentType "application/json" `
+  -Body (@{
+    level = "micro"
+    target = "iap"
+    opt_group_map = "opt_group_1"
+    date_from = 350
+    date_to = 420
+  } | ConvertTo-Json)
+
 ```
-Notes
-Models are trained on historical cohorts and served via FastAPI.
+### Notes
 
-Inference strictly uses D0–D7 features only.
+- Data source of truth: ClickHouse table roas.cohort_metrics_raw
 
-Aggregation level (micro / mid / macro) can be selected per request.
+- Serving view: roas.cohort_metrics
+(adds derived fields: date_idx, cpi, cost)
 
-ClickHouse is used as a source of truth for cohort metrics.
+- Inference safety: only D0–D7 cohort features are used (no leakage)
 
-Entry Points
-API: src/api/app.py
+- Aggregation level (micro / mid / macro) is selectable per request
 
-Training: src/training/train.py
+- Models are trained on historical cohorts and served via FastAPI.
 
-DB schema: sql/schema.sql
+### Entry Points
+- API: src/api/app.py
 
-Docker setup: docker-compose.yml
+- Training: src/training/train.py
+
+- DB schema: sql/schema.sql
+
+- Docker setup: docker-compose.yml
