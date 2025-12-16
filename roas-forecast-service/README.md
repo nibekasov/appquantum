@@ -63,6 +63,12 @@ Mount the directory with CSV file into the api container
 
 volumes:
   - "C:/Users/{root}:/data"
+Option B
+
+```powershell
+docker cp "C:\Users\{path_to_file}\test_task_cl.csv" roas-forecast-service-api-1:/app/test_task_cl.csv
+'''
+
 '''
 
 ```powershell
