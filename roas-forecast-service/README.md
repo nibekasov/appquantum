@@ -35,8 +35,6 @@ roas-forecast-service/
 
 
 
----
-
 Quick Start
 
 The service is fully reproducible via Docker Compose.
