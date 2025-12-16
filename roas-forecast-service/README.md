@@ -1,41 +1,39 @@
-# ROAS Forecast Service (D7 → D90)
+ROAS Forecast Service (D7 → D90)
 
-Production-ready service for forecasting **IAP / IAA ROAS at D90** using cohort metrics available at **D0–D7**.  
-Designed for **UA optimization workflows** and **multi-level aggregation** (micro / mid / macro).
+Production-ready service for forecasting IAP / IAA ROAS at D90 using cohort-level metrics available at D0–D7.
 
----
+Designed for UA optimization workflows with support for multi-level aggregation (micro / mid / macro) and strict leakage control.
 
-## Key Features
+Key Features
 
-- **Targets:** `iap_roas_d90`, `iaa_roas_d90`
-- **Inference horizon:** D7 → D90 (no leakage)
-- **Signals:** cohort-level metrics only (privacy-safe)
-- **Levels:** micro / mid / macro
-- **Stack:** CatBoost, ClickHouse, FastAPI, Docker
+Targets: iap_roas_d90, iaa_roas_d90
 
----
+Inference horizon: D7 → D90 (no target leakage)
 
-## Repository Structure
-```text
+Signals: cohort-level metrics only (privacy-safe)
+
+Aggregation levels: micro / mid / macro
+
+Stack: CatBoost, ClickHouse, FastAPI, Docker
+
+Repository Structure
 roas-forecast-service/
-  ├── docker-compose.yml
-  ├── requirements.txt
-  ├── sql/
-  │ └── schema.sql
-  ├── src/
-  │ ├── api/
-  │ │ └── app.py
-  │ ├── core/
-  │ └── training/
-  │ └── train.py
-  ├── scripts/
-  │ └── load_csv_to_clickhouse.py
-  └── README.md
+├── docker-compose.yml
+├── Dockerfile.api
+├── requirements.txt
+├── sql/
+│   └── schema.sql
+├── src/
+│   ├── api/
+│   │   └── app.py
+│   ├── core/
+│   └── training/
+│       └── train.py
+├── scripts/
+│   └── load_csv_to_clickhouse.py
+└── README.md
 
-
-
-
-## Quick Start
+Quick Start
 
 The service is fully reproducible via Docker Compose.
 
